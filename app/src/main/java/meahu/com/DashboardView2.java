@@ -23,10 +23,6 @@ import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
 /**
  * DashboardView style 2 仿芝麻信用分
  * Created by woxingxiao on 2016-11-19.
@@ -61,6 +57,11 @@ public class DashboardView2 extends View {
     private String[] mTexts;
     private int mBackgroundColor;
     private int[] mBgColors;
+
+    private double yearInterest = 0;
+    private double raiseInterestRates = 0;
+    private double earnings = 0;
+
     /**
      * 由于真实的芝麻信用界面信用值不是线性排布，所以播放动画时若以信用值为参考，则会出现忽慢忽快
      * 的情况（开始以为是卡顿）。因此，先计算出最终到达角度，以扫过的角度为线性参考，动画就流畅了
@@ -181,7 +182,7 @@ public class DashboardView2 extends View {
             );
             mPaint.setStyle(Paint.Style.FILL);
             mPaint.setShader(generateRadialGradient(point[0], point[1]));
-//            canvas.drawCircle(point[0], point[1], mSparkleWidth / 2f, mPaint);
+            canvas.drawCircle(point[0], point[1], mSparkleWidth / 2f, mPaint);
         } else {
             /**
              * 画进度圆弧(起始到信用值)
@@ -198,7 +199,7 @@ public class DashboardView2 extends View {
             );
             mPaint.setStyle(Paint.Style.FILL);
             mPaint.setShader(generateRadialGradient(point[0], point[1]));
-//            canvas.drawCircle(point[0], point[1], mSparkleWidth / 2f, mPaint);
+            canvas.drawCircle(point[0], point[1], mSparkleWidth / 2f, mPaint);
         }
 
         /**
@@ -258,7 +259,7 @@ public class DashboardView2 extends View {
         }
 //        canvas.restore();
         // 顺时针到结尾处
-        canvas.save();
+//        canvas.save();
         for (int i = 0; i < (mSection * mPortion) / 2; i++) {
 //            canvas.rotate(degree, mCenterX, mCenterY);
 //            canvas.drawLine(x0, y0, x2, y2, mPaint);
@@ -312,29 +313,48 @@ public class DashboardView2 extends View {
 //        canvas.drawText(calculateCreditDescription(), mCenterX, mCenterY + dp2px(55), mPaint);
 
         /**
-         * 画评估时间
+         * 画每一万的收益
          */
         mPaint.setAlpha(160);
         mPaint.setTextSize(sp2px(14));
-        canvas.drawText(getFormatTimeStr(), mCenterX, mCenterY + dp2px(30), mPaint);
+        canvas.drawText(getEarnings(), mCenterX, mCenterY + dp2px(30), mPaint);
 
-
-        /**
-         * 画年化收益
-         */
-        mPaint.setAlpha(160);
-        mPaint.setTextSize(sp2px(80));
-        canvas.drawText(getYearInterest(), mCenterX - dp2px(50), mCenterY + dp2px(10), mPaint);
-
-
-        /**
-         * 画加息  % +1%
-         */
-
-        mPaint.setAlpha(160);
-        mPaint.setTextSize(sp2px(40));
-        canvas.drawText(getRaiseInterestRates(), mCenterX +dp2px(10), mCenterY + dp2px(10), mPaint);
-
+        if (raiseInterestRates > 0) {
+            if (yearInterest > 10) {
+                /**
+                 * 画年化收益
+                 */
+                mPaint.setAlpha(160);
+                mPaint.setTextSize(sp2px(60));
+                canvas.drawText(subZeroAndDot(String.valueOf(getYearInterest())), mCenterX - dp2px(52), mCenterY + dp2px(10), mPaint);
+                /**
+                 * 画加息
+                 */
+                mPaint.setAlpha(160);
+                mPaint.setTextSize(sp2px(40));
+                canvas.drawText("%+" + subZeroAndDot(String.valueOf(getRaiseInterestRates())) + "%", mCenterX + dp2px(30), mCenterY + dp2px(10), mPaint);
+            } else {
+                /**
+                 * 画年化收益
+                 */
+                mPaint.setAlpha(160);
+                mPaint.setTextSize(sp2px(80));
+                canvas.drawText(subZeroAndDot(String.valueOf(getYearInterest())), mCenterX - dp2px(50), mCenterY + dp2px(10), mPaint);
+                /**
+                 * 画加息
+                 */
+                mPaint.setAlpha(160);
+                mPaint.setTextSize(sp2px(40));
+                canvas.drawText("%+" + subZeroAndDot(String.valueOf(getRaiseInterestRates())) + "%", mCenterX + dp2px(24), mCenterY + dp2px(10), mPaint);
+            }
+        } else {
+            /**
+             * 画年化收益
+             */
+            mPaint.setAlpha(160);
+            mPaint.setTextSize(sp2px(90));
+            canvas.drawText(subZeroAndDot(String.valueOf(getYearInterest())) + "%", mCenterX, mCenterY + dp2px(10), mPaint);
+        }
 
     }
 
@@ -435,15 +455,28 @@ public class DashboardView2 extends View {
         return "信用较差";
     }
 
-    private String getYearInterest() {
-        return "7";
+    private double getYearInterest() {
+        return yearInterest;
     }
 
-    private String getFormatTimeStr() {
-        int totalAmount = 10000;
-        double income = totalAmount * 0.14;
-        return getContext().getString(R.string.formart_money, income);
+    private String getEarnings() {
+        return getContext().getString(R.string.formart_money, earnings);
     }
+
+    /**
+     * 使用java正则表达式去掉多余的.与0
+     *
+     * @param s
+     * @return
+     */
+    public static String subZeroAndDot(String s) {
+        if (s.indexOf(".") > 0) {
+            s = s.replaceAll("0+?$", "");//去掉多余的0  
+            s = s.replaceAll("[.]$", "");//如最后一位是.则去掉  
+        }
+        return s;
+    }
+
 
     public int getCreditValue() {
         return mCreditValue;
@@ -465,16 +498,17 @@ public class DashboardView2 extends View {
     }
 
     /**
-     * 设置信用值并播放动画
+     * 设置进度
      *
-     * @param creditValue 信用值
+     * @param creditValue 进度
      */
     public void setCreditValueWithAnim(int creditValue) {
-        if (creditValue < mMin || creditValue > mMax || !isAnimFinish) {
+        //修正度数
+        int progress = creditValue * 6 + 350;
+        if (progress < mMin || progress > mMax || !isAnimFinish) {
             return;
         }
-
-        mSolidCreditValue = creditValue;
+        mSolidCreditValue = progress;
 
         ValueAnimator creditValueAnimator = ValueAnimator.ofInt(350, mSolidCreditValue);
         creditValueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
@@ -498,7 +532,7 @@ public class DashboardView2 extends View {
 
         ObjectAnimator colorAnimator = ObjectAnimator.ofInt(this, "mBackgroundColor", mBgColors[0], mBgColors[0]);
         // 实时信用值对应的背景色的变化
-        long delay = 1000;
+      /*  long delay = 1000;
         if (mSolidCreditValue > 700) {
             colorAnimator.setIntValues(mBgColors[0], mBgColors[1], mBgColors[2], mBgColors[3], mBgColors[4]);
             delay = 3000;
@@ -511,7 +545,7 @@ public class DashboardView2 extends View {
         } else if (mSolidCreditValue > 550) {
             colorAnimator.setIntValues(mBgColors[0], mBgColors[1]);
             delay = 1500;
-        }
+        }*/
         colorAnimator.setEvaluator(new ArgbEvaluator());
         colorAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
@@ -522,7 +556,7 @@ public class DashboardView2 extends View {
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet
-                .setDuration(delay)
+                .setDuration(1500)
                 .playTogether(creditValueAnimator, degreeValueAnimator, colorAnimator);
         animatorSet.addListener(new AnimatorListenerAdapter() {
             @Override
@@ -546,7 +580,35 @@ public class DashboardView2 extends View {
         animatorSet.start();
     }
 
-    public String getRaiseInterestRates() {
-        return " %+1%";
+    public double getRaiseInterestRates() {
+        return raiseInterestRates;
+    }
+
+
+    /**
+     * 设置加息
+     *
+     * @param raiseInterestRates 加息
+     */
+    public void setRaiseInterestRates(double raiseInterestRates) {
+        this.raiseInterestRates = raiseInterestRates;
+    }
+
+    /**
+     * 设置年化利息
+     *
+     * @param yearInterest 年化利息
+     */
+    public void setYearInterest(double yearInterest) {
+        this.yearInterest = yearInterest;
+    }
+
+    /**
+     * 每万元的收益
+     *
+     * @param earnings
+     */
+    public void setEarnings(double earnings) {
+        this.earnings = earnings;
     }
 }
