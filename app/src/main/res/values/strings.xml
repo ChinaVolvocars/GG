@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">GG</string>
+    <string name="formart_money">每万元预计收益%.2f元</string>
 </resources>

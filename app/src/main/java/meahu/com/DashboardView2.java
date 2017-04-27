@@ -315,8 +315,27 @@ public class DashboardView2 extends View {
          * 画评估时间
          */
         mPaint.setAlpha(160);
-        mPaint.setTextSize(sp2px(10));
-        canvas.drawText(getFormatTimeStr(), mCenterX, mCenterY + dp2px(70), mPaint);
+        mPaint.setTextSize(sp2px(14));
+        canvas.drawText(getFormatTimeStr(), mCenterX, mCenterY + dp2px(30), mPaint);
+
+
+        /**
+         * 画年化收益
+         */
+        mPaint.setAlpha(160);
+        mPaint.setTextSize(sp2px(80));
+        canvas.drawText(getYearInterest(), mCenterX - dp2px(50), mCenterY + dp2px(10), mPaint);
+
+
+        /**
+         * 画加息  % +1%
+         */
+
+        mPaint.setAlpha(160);
+        mPaint.setTextSize(sp2px(40));
+        canvas.drawText(getRaiseInterestRates(), mCenterX +dp2px(10), mCenterY + dp2px(10), mPaint);
+
+
     }
 
     private int dp2px(int dp) {
@@ -416,11 +435,14 @@ public class DashboardView2 extends View {
         return "信用较差";
     }
 
+    private String getYearInterest() {
+        return "7";
+    }
 
     private String getFormatTimeStr() {
         int totalAmount = 10000;
         double income = totalAmount * 0.14;
-        return String.format("每万元预估收益:%s", String.valueOf(income));
+        return getContext().getString(R.string.formart_money, income);
     }
 
     public int getCreditValue() {
@@ -524,4 +546,7 @@ public class DashboardView2 extends View {
         animatorSet.start();
     }
 
+    public String getRaiseInterestRates() {
+        return " %+1%";
+    }
 }
